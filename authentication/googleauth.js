@@ -1,4 +1,5 @@
 const google = require('googleapis').google
+const pgcontroller = require('./../controllers/pgcontroller')
 // import { google } from 'googleapis';
 // require { google } from 'googleapis';
 
@@ -11,18 +12,18 @@ const googleConfig = {
 /**
  * Create the google auth object which gives us access to talk to google's apis.
  */
-function createConnection() {
+function createAuthConnection(redirecturl) {
   return new google.auth.OAuth2(
     googleConfig.clientId,
     googleConfig.clientSecret,
-    googleConfig.redirect
+    redirecturl || googleConfig.redirect
   );
 }
 
 /**
  * This scope tells google what information we want to request.
  */
- const defaultScope = [
+const defaultScope = [
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile',
 ];
@@ -41,10 +42,71 @@ function getConnectionUrl(auth) {
 /**
  * Create the google url to be sent to the client.
  */
-function urlGoogle() {
-  const auth = createConnection(); // this is from previous step
+function urlGoogle(redirecturl) {
+  const auth = createAuthConnection(redirecturl); // this is from previous step
   const url = getConnectionUrl(auth);
   return url;
 }
 
-exports.signinurl = urlGoogle
+/**
+ * Helper function to get the library with access to the google plus api.
+ */
+function getGooglePlusApi(auth) {
+  return google.plus({ version: 'v1', auth });
+}
+
+/**
+ * Extract the email and id of the google account from the "code" parameter.
+ */
+async function getGoogleAccountFromCode(auth, code) {
+  const data = await auth.getToken(code)
+  // console.log('tokens: ', data.tokens)
+  auth.setCredentials(data.tokens)
+  
+  const oauth2 = google.oauth2({ auth: auth, version: 'v2' })
+  const res = await oauth2.userinfo.get({})
+  return res.data
+}
+
+function setupSignin(req, res, next) {
+  // console.log('session.signedin: ', req.session.signedin)
+  if (!req.session.signedin) {
+    req.session.auth = createAuthConnection()
+    res.locals.signinurl = getConnectionUrl(req.session.auth)
+  }
+
+  res.locals.signedin = req.session.signedin
+  next()
+}
+
+function requireSignin(req, res, next) {
+  if (!req.session.signedin) {
+    req.session.signinredirect = req.protocol + '://' + req.get('host') + req.originalUrl
+    res.redirect(res.locals.signinurl);
+  } else {
+    next()
+  }
+}
+
+async function getGoogleAccount(req, res, next) {
+  if (!req.session.signedin && req.query.code) {
+    const account = await getGoogleAccountFromCode(req.session.auth, req.query.code)
+    if (!await pgcontroller.isUser(account.email)) await pgcontroller.addUser(account.email, account.name)
+
+    req.session.account = account
+    req.session.signedin = true
+    res.redirect(req.session.signinredirect || '/')
+  } else {
+    next()
+  }
+}
+
+function signout(req, res) {
+  req.session.destroy()
+  res.redirect('/')
+}
+
+exports.setupSignin = setupSignin
+exports.requireSignin = requireSignin
+exports.getGoogleAccount = getGoogleAccount
+exports.signout = signout

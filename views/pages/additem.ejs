@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+  <%- include ("../partials/nav.ejs") %>
+
+  <br>
+  <div class="container bg-success">
+    <p class="h1 text-center"><span class="badge">Create a New Item</span></p>
+    <br><br>
+    <form method="POST" action="/additem">
+      <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="A title for your item" required>
+      </div>
+      <div class="mb-3">
+        <label for="link" class="form-label">Link</label>
+        <input type="text" class="form-control" id="link" name="link" placeholder="link to the item">
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <input type="text" class="form-control" id="description" name="description" placeholder="a description for your group members">
+      </div>
+      <div class="mb-3">
+        <label for="groupID" class="form-label">Limit To Signle Group</label>
+        <select class="form-select" id="groupID" name="groupId" aria-label="Group Select">
+          <option selected value=""></option>
+          <% for (const group of mygroups) { %>
+          <option value="<%= group.group_id %>"><%= group.name %></option>
+          <% } %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-md">Create Group</button>
+    </form>
+    <br>
+  </div>
+
+</body>
+</html>

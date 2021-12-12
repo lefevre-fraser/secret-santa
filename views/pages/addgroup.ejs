@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+  <%- include ("../partials/nav.ejs") %>
+
+  <br>
+  <div class="container bg-success">
+    <p class="h1 text-center"><span class="badge">Create a New Secret Santa Group</span></p>
+    <br><br>
+    <form method="POST" action="/addgroup">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" name="name" placeholder="A name for your group" required>
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <input type="text" class="form-control" id="description" name="description" placeholder="a description for your group members">
+      </div>
+      <div class="mb-3">
+        <label for="memberList" class="form-label">Member List</label>
+        <input type="text" class="form-control" id="memberList" name="memberList" aria-describedby="memberListHelp">
+        <div id="memberListHelp" class="form-text" style="color: black">List of emails seperated by semicolons</div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-md">Create Group</button>
+    </form>
+    <br>
+  </div>
+
+</body>
+</html>
