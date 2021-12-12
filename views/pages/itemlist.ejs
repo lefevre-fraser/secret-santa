@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+	<%- include ("../partials/nav.ejs") %>
+
+	<br>
+	<div class="container bg-success">
+		<p class="h1 text-center"><span class="badge"><%= (account.email === user.email_id ? 'My '  : (user.name || user.email_id) + ' - ') %>Wish List</span></p>
+		<br><br>
+		<table class="table table-light table-striped">
+			<thead>
+				<tr>
+					<% if (account.email !== user.email_id) { %>
+					<th scope="col">Purchased</th>
+					<% } %>  
+					<th scope="col">Title</th>
+					<th scope="col">Link</th>
+					<th scope="col">Description</th>
+					<th scope="col">Group</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% if (account.email === user.email_id) { %>
+				<form method="POST" action="/additem"><tr>
+					<td><div class="row g-3">
+						<div class="col-auto"><label for="title" class="col-form-label">Title</label></div>
+						<div class="col-auto"><input type="text" class="form-control" id="title" name="title" placeholder="A title for your item" required></div>
+					</div></td>
+					<td><div class="row g-3">
+						<div class="col-auto"><label for="link" class="col-form-label">Link</label></div>
+						<div class="col-auto"><input type="text" class="form-control" id="link" name="link" placeholder="link to the item"></div>
+					</div></td>
+					<td><div class="row g-3">
+						<div class="col-auto"><label for="description" class="col-form-label">Description</label></div>
+						<div class="col-auto"><input type="text" class="form-control" id="description" name="description" placeholder="size/color/fit/etc."></div>
+					</div></td>
+					<td>
+						<div class="row g-3">
+							<div class="col-auto"><label for="groupID" class="col-form-label">Limit To Signle Group</label></div>
+							<div class="col-auto"><select class="form-select" id="groupID" name="groupId" aria-label="Group Select">
+								<option selected value=""></option>
+								<% for (const group of mygroups) { %>
+								<option value="<%= group.group_id %>"><%= group.name %></option>
+								<% } %>
+							</select></div>
+						</div>
+						
+					</td>
+					<input type="text" name="redirecturl" onload="this.value = window.location.href" hidden>
+				</tr><tr>
+					<td colspan="4" class="text-center"><button type="submit" class="btn btn-primary btn-md">Add Item</button></td>
+				</tr></form>
+				<% } %> 
+				<% for (const item of itemList) { %> 
+				<tr>
+					<% if (account.email !== user.email_id) { %>
+					<form method="POST" action="/items/<%= item.id %>/purchase"><td>
+						<input type="checkbox" <%= (item.purchased ? 'checked' : '') %> disabled>
+						<% if (!item.purchased) { %> 
+						<input type="text" name="redirecturl" onload="this.value = window.location.href" hidden>
+						<button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to mark \'<%= item.title %>\' for \'<%= user.name || user.email_id %>\' as purchased?')">Mark Purchased</button>
+						<% } %> 
+					</td></form>
+					<% } %>  
+					<td><%= item.title %></td>
+					<td><a href="<%= item.link %>"><%= item.link %></a></td>
+					<td><%= item.description %></td>
+					<td><%= item.group_name %></td>
+				</tr>
+				<% } %> 
+			</tbody>
+		</table>
+		<br>
+	</div>
+	<script>$('[name=redirecturl]').load()</script>
+
+</body>
+
+</html>

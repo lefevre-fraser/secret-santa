@@ -6,7 +6,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <% const pages = (!signedin ?  {'Home': '/'} : {'Home': '/', 'My Items': '/myitems'}) %>
+        <% const pages = (!signedin ?  {'Home': '/'} : {'Home': '/', 'My Items': '/items'}) %>
         <% for (const [page, link] of Object.entries(pages)) { %>
         <% const activepage = (title === page) %>
         <li class="nav-item">
@@ -31,6 +31,7 @@
         <% if (!signedin) { %> 
         <li class="nav-item"><a class="nav-link" href="<%= signinurl %>">Google Sign-In</a></li>
         <% } else { %>
+        <li class="nav-item"><a class="nav-link" href="#">Welcome <%= account.name %>!</a></li>
         <li class="nav-item"><a class="nav-link" href="/signout">Sign-Out</a></li>
         <% } %>
       </ul>

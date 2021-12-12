@@ -1,4 +1,4 @@
-const google = require('googleapis').google
+const { google } = require('googleapis')
 const pgcontroller = require('./../controllers/pgcontroller')
 // import { google } from 'googleapis';
 // require { google } from 'googleapis';
@@ -60,7 +60,6 @@ function getGooglePlusApi(auth) {
  */
 async function getGoogleAccountFromCode(auth, code) {
   const data = await auth.getToken(code)
-  // console.log('tokens: ', data.tokens)
   auth.setCredentials(data.tokens)
   
   const oauth2 = google.oauth2({ auth: auth, version: 'v2' })
@@ -69,7 +68,6 @@ async function getGoogleAccountFromCode(auth, code) {
 }
 
 function setupSignin(req, res, next) {
-  // console.log('session.signedin: ', req.session.signedin)
   if (!req.session.signedin) {
     req.session.auth = createAuthConnection()
     res.locals.signinurl = getConnectionUrl(req.session.auth)
@@ -92,7 +90,9 @@ async function getGoogleAccount(req, res, next) {
   if (!req.session.signedin && req.query.code) {
     const account = await getGoogleAccountFromCode(req.session.auth, req.query.code)
     if (!await pgcontroller.isUser(account.email)) await pgcontroller.addUser(account.email, account.name)
+    if (!(await pgcontroller.getUser(account.email)).name) pgcontroller.updateUser(account)
 
+    account.email = pgcontroller.formatEmail(account.email)
     req.session.account = account
     req.session.signedin = true
     res.redirect(req.session.signinredirect || '/')

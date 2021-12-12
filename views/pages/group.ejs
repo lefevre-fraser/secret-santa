@@ -11,9 +11,9 @@
 
 	<br>
 	<div class="container bg-success">
-		<p class="h1 text-center"><span class="badge">Group Member List</span></p>
+		<p class="h1 text-center"><span class="badge"><%= group.name %> - Group Member List</span></p>
 		<br><br>
-		<table class="table">
+		<table class="table table-light table-striped">
 			<thead>
 				<tr>
 					<th scope="col">Name</th>
@@ -22,7 +22,7 @@
 			</thead>
 			<tbody>
 				<% for (const member of memberList) { %> 
-					<tr><td><%= (member.name ? member.name : member.email_id) %></td><td><a href="/items/<%= member.email_id %>">view wish list</a></td></tr>
+					<tr><td><%= member.name || member.email_id %></td><td><a href="/items/<%= member.email_id %>">view wish list</a></td></tr>
 				<% } %> 
 			</tbody>
 		</table>

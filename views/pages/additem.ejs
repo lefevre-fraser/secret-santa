@@ -23,18 +23,18 @@
       </div>
       <div class="mb-3">
         <label for="description" class="form-label">Description</label>
-        <input type="text" class="form-control" id="description" name="description" placeholder="a description for your group members">
+        <input type="text" class="form-control" id="description" name="description" placeholder="size/color/fit/etc.">
       </div>
       <div class="mb-3">
-        <label for="groupID" class="form-label">Limit To Signle Group</label>
-        <select class="form-select" id="groupID" name="groupId" aria-label="Group Select">
+        <label for="groupId" class="form-label">Limit To Signle Group</label>
+        <select class="form-select" id="groupId" name="groupId" aria-label="Group Select">
           <option selected value=""></option>
           <% for (const group of mygroups) { %>
           <option value="<%= group.group_id %>"><%= group.name %></option>
           <% } %>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary btn-md">Create Group</button>
+      <button type="submit" class="btn btn-primary btn-md">Add Item</button>
     </form>
     <br>
   </div>

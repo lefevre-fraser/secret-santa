@@ -13,8 +13,11 @@ express()
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
   .use(session({ secret: 'secret santa', resave: false, saveUninitialized: true, cookie: { secure: false }}))
-  // .use((req, res, next) => { console.log(req.session), next() })
-  .use((req, res, next) => { res.locals.title = '', next() }) // prevent nav/header failing if page has no title
+  .use((req, res, next) => { 
+    res.locals.account = req.session.account 
+    res.locals.title = ''
+    next()
+  }) // default values to fields for .ejs files
   .get('/signout', googleauth.signout)
   .use(googleauth.setupSignin)
   .use(googleauth.getGoogleAccount)
@@ -23,7 +26,10 @@ express()
   .use(googleauth.requireSignin)
   .get('/addgroup', (req, res) => res.render('pages/addgroup', { title: 'Add Group' }))
   .post('/addgroup', pgcontroller.postAddGroup)
+  .get('/groups/:groupId', pgcontroller.getGroupMemberList)
   .get('/additem', (req, res) => res.render('pages/additem', { title: 'Add Item' }))
   .post('/additem', pgcontroller.postAddItem)
-  .get('/groups/:groupId', pgcontroller.getGroup)
+  .get('/items', pgcontroller.getItemList)
+  .get('/items/:emailId', pgcontroller.getItemList)
+  .post('/items/:itemId/purchase', pgcontroller.postPurchaseItem)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
