@@ -79,7 +79,10 @@ function postAddGroup(req, response) {
     const email = req.session.account.email
     const name = req.body.name
     const description = req.body.description
-    const memberList = req.body.memberList?.split(/\s*(;|\r\n|\r|\n)\s*/) || []
+    const memberList = req.body.memberList?.split(/\s*[;\r|\n]+\s*/).filter(email => email !== '') || []
+    if (!memberList.includes(email)) memberList.push(email)
+    console.log(memberList)
+
 
     return new Promise((resolve) => {
         pool.connect((err, client, done) => {
@@ -87,10 +90,9 @@ function postAddGroup(req, response) {
             client.query('INSERT INTO app_group(name, description) VALUES ($1, $2) RETURNING *', [name, description], async (err, res) => {
                 if (err) { done(); throw err }
                 const group_id = res.rows[0].id
-                if (!memberList.includes(email)) memberList.push(email)
                 
                 for (const member of memberList) {
-                    if (!await isUser(member)) addUser(member)
+                    if (!await isUser(member)) await addUser(member)
                     const user = await getUser(member)
 
                     client.query('INSERT INTO group_membership(group_id, member_email_id) VALUES ($1, $2)', [group_id, user.email_id], (err, res) => {
