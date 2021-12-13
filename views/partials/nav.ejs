@@ -21,7 +21,7 @@
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="/addgroup">Add Group</a></li>
             <% for (const group of mygroups || []) { %>
-            <li><a class="dropdown-item" href="/groups/<%= group.group_id %>"><%= group.name %></a></li>
+            <li><a class="dropdown-item" href="/groups/<%= group.id %>"><%= group.name %></a></li>
             <% } %>
           </ul>
         </li>

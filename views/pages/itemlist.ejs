@@ -42,7 +42,7 @@
 					</div></td>
 					<td>
 						<div class="row g-3">
-							<div class="col-auto"><label for="groupID" class="col-form-label">Limit To Signle Group</label></div>
+							<div class="col-auto"><label for="groupID" class="col-form-label">Limit To Single Group</label></div>
 							<div class="col-auto"><select class="form-select" id="groupID" name="groupId" aria-label="Group Select">
 								<option selected value=""></option>
 								<% for (const group of mygroups) { %>
@@ -68,7 +68,7 @@
 						<% } %> 
 					</td></form>
 					<% } %>  
-					<td><%= item.title %></td>
+					<td><%= item.title %><a href="/items/<%= item.id %>/view" class="text-decoration-none badge text-dark badge-sm">&#x1F517;</a></td>
 					<td><% if (item.link) { %><a href="<%= item.link %>"><%= item.title %></a><% } %></td>
 					<td><%= item.description %></td>
 					<td><%= item.group_name %></td>

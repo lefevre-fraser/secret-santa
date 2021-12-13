@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%- include ("../partials/header.ejs") %>
+</head>
+
+<body>
+
+  <%- include ("../partials/nav.ejs") %>
+
+  <br>
+  <div class="container bg-success">
+    <p class="h1 text-center"><span class="badge"><a href="/items/<%= item.member_email_id %>" class="text-light">Wish List</a> - Update an Item</span></p>
+    <br><br>
+    <% if (mode === 'edit') { %>
+    <form method="POST" action="/items/<%= item.id %>/update">
+    <% } else { %>
+    <div>
+    <% } %>
+      <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input <%= (mode === 'view' ? 'readonly' : '') %> value="<%= item.title %>" type="text" class="form-control" id="title" name="title" placeholder="A title for your item" required>
+      </div>
+      <div class="mb-3">
+        <label for="link" class="form-label">Link</label>
+        <input <%= (mode === 'view' ? 'readonly' : '') %> value="<%= item.link %>" type="text" class="form-control" id="link" name="link" placeholder="link to the item">
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <input <%= (mode === 'view' ? 'readonly' : '') %> value="<%= item.description %>" type="text" class="form-control" id="description" name="description" placeholder="size/color/fit/etc.">
+      </div>
+      <div class="mb-3">
+        <label for="groupId" class="form-label">Limit To Signle Group</label>
+        <select <%= (mode === 'view' ? 'disabled' : '') %> class="form-select" id="groupId" name="groupId" aria-label="Group Select">
+          <option value=""></option>
+          <% for (const group of mygroups) { %>
+          <option <%= (item.group_id === group.id ? 'selected' : '') %> value="<%= group.id %>"><%= group.name %></option>
+          <% } %>
+        </select>
+      </div>
+      <% if (mode === 'edit') { %>
+      <button type="submit" class="btn btn-primary btn-md">Update Item</button>
+      <% } else if (mode === 'view') { %>
+      <form method="POST" action="delete">
+        <a class="btn btn-primary btn-md" href="update">Edit Item</a>
+        <button type="submit" class="btn btn-primary btn-md">Delete Item</a>
+      </form>
+      <% } %>
+    <% if (mode === 'edit') { %>
+    </form>
+    <% } else { %>
+    </div>
+    <% } %>
+    <br>
+  </div>
+
+</body>
+</html>

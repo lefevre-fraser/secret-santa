@@ -116,8 +116,42 @@ function postAddItem(req, response) {
         pool.connect((err, client, done) => {
             if (err) throw err
             client.query('INSERT INTO item(member_email_id, group_id, title, link, description) VALUES ($1, $2, $3, $4, $5) RETURNING *', [email, group_id, title, link, description], (err, res) => {
-                if (err) throw err
-                resolve(res.rows), response.redirect(req.body.redirecturl || '/')
+                if (err) { done(); throw err }
+                done(), resolve(res.rows[0]), response.redirect(req.body.redirecturl || '/')
+            })
+        })
+    })
+}
+
+function postUpdateItem(req, response) {
+    return new Promise((resolve) => {
+        pool.connect((err, client, done) => {
+            if (err) throw err
+            const itemId = req.params.itemId
+            const title = req.body.title
+            const link = req.body.link
+            const description = req.body.description
+            const groupId = req.body.groupId
+
+            client.query('UPDATE item SET title = $1, link = $2, description = $3, group_id = $4 WHERE id = $5', [title, link, description, groupId, itemId], (err, res) => {
+                if (err) { done(); throw err }
+                done(), resolve(res.rows[0])
+                response.redirect('/items/' + itemId + '/view')
+            })
+        })
+    })
+}
+
+function postDeleteItem(req, response) {
+    return new Promise((resolve) => {
+        pool.connect((err, client, done) => {
+            if (err) throw err
+            const itemId = req.params.itemId
+
+            client.query('DELETE FROM item WHERE id = $1', [itemId], (err, res) => {
+                if (err) { done(); throw err }
+                done(), resolve(res.rows[0])
+                response.redirect('/items')
             })
         })
     })
@@ -142,13 +176,29 @@ function getMyGroups(req, response, next) {
         pool.connect((err, client, done) => {
             if (err) throw err
             const email = formatEmail(req.session.account.email)
-            client.query('SELECT gm.group_id, g.name FROM group_membership AS gm JOIN app_group AS g ON gm.group_id = g.id WHERE LOWER(gm.member_email_id) = LOWER($1)', [email], (err, res) => {
+            client.query('SELECT g.id, g.name FROM group_membership AS gm JOIN app_group AS g ON gm.group_id = g.id WHERE LOWER(gm.member_email_id) = LOWER($1)', [email], (err, res) => {
                 done()
                 if (err) {
                     console.log(err.stack)
                 } else {
                     response.locals.mygroups = res.rows
                     resolve(), next()
+                }
+            })
+        })
+    })
+}
+
+function getItem(id) {
+    return new Promise((resolve) => {
+        pool.connect((err, client, done) => {
+            if (err) throw err
+            client.query('SELECT id, member_email_id, group_id, title, link, description, purchased FROM item WHERE id = $1', [id], (err, res) => {
+                done()
+                if (err) {
+                    console.log(err.stack)
+                } else {
+                    resolve(res.rows[0])
                 }
             })
         })
@@ -225,7 +275,11 @@ exports.formatEmail = formatEmail
 
 exports.updateUser = updateUser
 
+exports.getItem = getItem
 exports.postAddItem = postAddItem
+exports.postUpdateItem = postUpdateItem
+exports.postDeleteItem = postDeleteItem
+
 exports.postAddGroup = postAddGroup
 exports.postPurchaseItem = postPurchaseItem
 exports.getMyGroups = getMyGroups
