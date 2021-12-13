@@ -81,8 +81,6 @@ function postAddGroup(req, response) {
     const description = req.body.description
     const memberList = req.body.memberList?.split(/\s*[;\r|\n]+\s*/).filter(email => email !== '') || []
     if (!memberList.includes(email)) memberList.push(email)
-    console.log(memberList)
-
 
     return new Promise((resolve) => {
         pool.connect((err, client, done) => {
@@ -108,7 +106,7 @@ function postAddGroup(req, response) {
 }
 
 function postAddItem(req, response) {
-    const email = req.session.account.email
+    const email = formatEmail(req.session.account.email)
     const group_id = req.body.groupId || null
     const title = req.body.title
     const link = req.body.link || null
@@ -167,7 +165,6 @@ function getItems(email) {
                 if (err) {
                     console.log(err.stack)
                 } else {
-                    console.log(res.rows)
                     resolve(res.rows)
                 }
             })
