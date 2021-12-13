@@ -40,7 +40,7 @@
       </div>
       <% if (mode === 'edit') { %>
       <button type="submit" class="btn btn-primary btn-md">Update Item</button>
-      <% } else if (mode === 'view') { %>
+      <% } else if (mode === 'view' && account.email === item.member_email_id) { %>
       <form method="POST" action="delete">
         <a class="btn btn-primary btn-md" href="update">Edit Item</a>
         <button type="submit" class="btn btn-primary btn-md">Delete Item</a>
