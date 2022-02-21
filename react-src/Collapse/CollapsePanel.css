@@ -1,0 +1,25 @@
+.collapse-panel {
+    width: 98%;
+    margin: auto;
+}
+
+.collapse-panel-title {
+    display: block;
+    user-select: none;
+    cursor: pointer;
+
+    width: 100%;
+    height: 24pt;
+    line-height: 24pt;
+    font-size: 24pt;
+    border: outset;
+}
+
+.collapse-panel-content {
+    display: block;
+    width: 96%;
+}
+
+.collapse-panel.closed > .collapse-panel-content {
+    display: none;
+}

@@ -17,3 +17,6 @@ data.sql
 
 # Other
 models
+
+#webpack js build file
+/public/app.js
