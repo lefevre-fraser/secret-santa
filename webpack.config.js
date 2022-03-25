@@ -2,6 +2,9 @@ const path = require('path');
 // const HWP = require('html-webpack-plugin');
 
 module.exports = {
+    resolve: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
+    },
     entry: path.join(__dirname, '/react-src/index.js'),
     output: {
         filename: 'app.js',
@@ -9,6 +12,9 @@ module.exports = {
     },
     module: {
         rules: [{
+            test: /.*react-src.*\.tsx?$/,
+            loader: 'ts-loader'
+        }, {
             test: /.*react-src.*\.jsx?$/,
             loader: 'babel-loader'
         }, {

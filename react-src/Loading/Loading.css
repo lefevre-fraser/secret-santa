@@ -1,0 +1,49 @@
+@keyframes loading-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-cover {
+    background-color: #00000019;
+
+    height: 100%;
+    width: 100%;
+
+    position: relative;
+    z-index: 100;
+}
+
+.loading-spinner {
+    --loading-spinner-size: 40px;
+    --loading-spinner-thickness: 2px;
+    height: var(--loading-spinner-size);
+    width: var(--loading-spinner-size);
+
+    margin: auto;
+    margin-top: calc(50% - calc(var(--loading-spinner-size)/2));
+    margin-bottom: calc(50% - calc(var(--loading-spinner-size)/2));
+
+    border-radius: calc(var(--loading-spinner-size)/2);
+    border-color: transparent;
+    border-top-color: teal;
+    border-width: var(--loading-spinner-thickness);
+    /* border-style: dotted; */
+    border-style: solid;
+
+    background-color: transparent;
+    color: transparent;
+    animation: loading-spinner infinite 2s linear
+}
+
+.loading-spinner.small {
+    --loading-spinner-size: 20px;
+}
+
+.loading-spinner.large {
+    --loading-spinner-size: 80px;
+    --loading-spinner-thickness: 10px;
+}

@@ -1,0 +1,129 @@
+.collapse-panel {
+    --ss-cp-width: 98%;
+    --ss-cp-margin: auto;
+    --ss-cp-color: transparent;
+    --ss-cp-bg-color: transparent;
+
+    --ss-cp-title-user-select: none;
+    --ss-cp-title-cursor: pointer;
+    --ss-cp-title-padding: 5px;
+    --ss-cp-title-width: 100%;
+    --ss-cp-title-line-height: 16pt;
+    --ss-cp-title-font-size: var(--ss-cp-title-line-height);
+    --ss-cp-title-height: calc(var(--ss-cp-title-line-height), 10px);
+    --ss-cp-title-border-radius: 5px;
+    --ss-cp-title-border: outset;
+    --ss-cp-title-border-color: rgba(0, 0, 0, 0.5);
+    --ss-cp-title-color: ;
+    --ss-cp-title-bg-color: ;
+
+    --ss-cp-content-width: 98%;
+    --ss-cp-content-margin: auto;
+    --ss-cp-content-margin-bottom: 5px;
+    --ss-cp-content-padding: 5px;
+    --ss-cp-content-border-radius: 0 0 5px 5px;
+    --ss-cp-content-color: ;
+    --ss-cp-content-bg-color: var(--ss-white);
+
+    width: var(--ss-cp-width);
+    margin: var(--ss-cp-margin);
+    color: var(--ss-cp-color);
+    background-color: var(--ss-cp-bg-color);
+}
+
+.collapse-panel-title {
+    user-select: var(--ss-cp-title-user-select);
+    cursor: var(--ss-cp-title-cursor);
+    display: block;
+
+    padding: var(--ss-cp-title-padding);
+    width: var(--ss-cp-title-width);
+    height: var(--ss-cp-title-height);
+    line-height: var(--ss-cp-title-line-height);
+    font-size: var(--ss-cp-title-font-size);
+
+    border-radius: var(--ss-cp-title-border-radius);
+    border-color: var(--ss-cp-title-border-color);
+    border: var(--ss-cp-title-border);
+}
+
+.collapse-panel-content {
+    display: block;
+    width: var(--ss-cp-content-width);
+    margin: var(--ss-cp-content-margin);
+    margin-bottom: var(--ss-cp-content-margin-bottom);
+    padding: var(--ss-cp-content-padding);
+    border-radius: var(--ss-cp-content-border-radius);
+
+    color: var(--ss-cp-content-color);
+    background-color: var(--ss-cp-content-bg-color);
+}
+
+.collapse-panel.closed > .collapse-panel-content {
+    display: none;
+}
+
+.collapse-table {
+    --ss-ct-bg-color: var(--ss-white);
+    --ss-ct-bg-odd-accent: inset 0 0 0 9999px var(--ss-light-gray);
+    --ss-ct-grid-template-columns: auto;
+
+    --ss-ct-row-padding: 0;
+
+    --ss-ct-cell-padding: 5px;
+    --ss-ct-cell-border-color: var(--ss-gray4);
+    --ss-ct-cell-border-width: 0 0 1px 0;
+    --ss-ct-cell-border-style: solid;
+
+    display: grid;
+    grid-template-columns: 100%;
+    width: 100%;
+    row-gap: 0;
+}
+
+.collapse-table > :not(:first-child) {
+    border-top: 2px solid currentColor;
+}
+
+.collapse-table > tbody > .collapse-panel, 
+.collapse-table > tbody > .collapse-panel,
+.collapse-table > tbody > .collapse-panel > .collapse-panel-title {
+    display: contents;
+}
+
+.collapse-table > thead > tr > td,
+.collapse-table > thead > tr > th {
+    text-align: left;
+    font-size: 1.25em;
+}
+
+.collapse-table > thead > tr,
+.collapse-table > tbody > .collapse-panel > .collapse-panel-title > tr {
+    grid-template-columns: var(--ss-ct-grid-template-columns);
+    padding: var(--ss-ct-row-padding);
+
+    display: grid;
+    column-gap: 0;
+    width: 100%;
+}
+
+
+.collapse-table > thead > tr > td,
+.collapse-table > thead > tr > th,
+.collapse-table > tbody > .collapse-panel > .collapse-panel-title > tr > td,
+.collapse-table > tbody > .collapse-panel > .collapse-panel-title > tr > th {
+    border-color: var(--ss-ct-cell-border-color);
+    border-width: var(--ss-ct-cell-border-width);
+    border-style: var(--ss-ct-cell-border-style);
+    background-color: var(--ss-ct-bg-color);
+    padding: var(--ss-ct-cell-padding);
+}
+
+
+/* .collapse-table > thead > tr > td,
+.collapse-table > thead > tr > th, */
+.collapse-table > tbody > .collapse-panel:nth-of-type(odd) > .collapse-panel-title > tr > td,
+.collapse-table > tbody > .collapse-panel:nth-of-type(odd) > .collapse-panel-title > tr > th {
+    /* background-color: var(--ss-ct-bg-odd-color); */
+    box-shadow: var(--ss-ct-bg-odd-accent);
+}

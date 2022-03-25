@@ -1,0 +1,22 @@
+:root {
+    --ss-green: #198754;
+    --ss-blue: #0d6efd;
+    --ss-white: #ffffff;
+
+    --ss-gray1: #505050;
+    --ss-gray2: #707070;
+    --ss-gray3: #909090;
+    --ss-gray4: #A0A0A0;
+    --ss-gray5: #C0C0C0;
+    --ss-gray6: #D8D8D8;
+    --ss-gray7: #F0F0F0;
+
+    --ss-gray: var(--ss-gray1);
+    --ss-light-gray: var(--ss-gray6);
+
+    --ss-primary-bg-color: var(--ss-green);
+    --ss-primary-txt-color: var(--ss-white);
+
+    --ss-secondary-bg-color: var(--ss-blue);
+    --ss-secondary-txt-color: var(--ss-white);
+}

@@ -1,0 +1,13 @@
+.app {
+    background-color: white;
+}
+
+.app > .app-content {
+    margin: 2% 5%;
+    padding: 10px;
+    background-color: var(--ss-primary-bg-color);
+}
+
+.app > .app-content > h2 {
+    text-align: center;
+}

@@ -1,0 +1,38 @@
+.nav {
+    display: block;
+    height: 36pt;
+
+    background-color: var(--ss-secondary-bg-color);
+}
+
+.nav-link, .nav-brand {
+    display: block;
+    float: left;
+    line-height: 24pt;
+    font-size: 24pt;
+    height: 100%;
+    text-decoration: none;
+    padding: 5px;
+}
+
+.nav-link.right, .nav-brand.right {
+    float: right;
+}
+
+.nav-link::after, .nav-brand::after {
+    clear: both;
+}
+
+.nav-link:visited {
+    color: white;
+}
+
+.nav-link:hover {
+    background-color: var(--ss-secondary-bg-color);
+    color: var(--ss-secondary-txt-color);
+}
+
+.nav-brand > img {
+    display: block;
+    height: 100%;
+}

@@ -179,12 +179,279 @@ function getMyGroups(req, response, next) {
             client.query('SELECT g.id, g.name FROM group_membership AS gm JOIN app_group AS g ON gm.group_id = g.id WHERE LOWER(gm.member_email_id) = LOWER($1)', [email], (err, res) => {
                 done()
                 if (err) {
-                    console.log(err.stack)
+                    console.error(err.stack)
                 } else {
                     response.locals.mygroups = res.rows
                     resolve(), next()
                 }
             })
+        })
+    })
+}
+
+function ViewItemAccessControl(user) {
+    return `JOIN group_membership AS gm ON item.group_id = gm.group_id WHERE gm.member_email_id = '${user.email}'`
+}
+
+function EditItemAccessControl(user) {
+    return `WHERE member_email_id = '${user.email}'`
+}
+
+function ViewGroupAccessControl(user) {
+    return `JOIN group_membership AS gm ON app_group.id = gm.group_id WHERE gm.member_email_id = '${user.email}'`
+}
+
+function ViewUserAccessControl(user) {
+    return `JOIN group_membership AS gm ON app_user.email_id = gm.member_email_id JOIN group_membership AS gm2 ON gm.group_id = gm2.group_id WHERE (gm2.member_email_id = '${user.email}' OR app_user.email_id = '${user.email}')`
+}
+
+function NoAccessControl(user) {
+    return ''
+}
+
+function AccessControl(name) {
+    switch (name) {
+        case 'edit_item': return EditItemAccessControl;
+        case 'view_item': return ViewItemAccessControl;
+        case 'view_group': return ViewGroupAccessControl;
+        case 'view_user': return ViewUserAccessControl;
+        case 'none': return NoAccessControl;
+    }
+
+    return null;
+}
+
+function post(tablename, accessControl) {
+    return async(req, res, next) => {
+        query(tablename, req.query, req.session.account, accessControl)
+            .then((rows) => {
+                if (rows) {
+                    // TODO update item(s)
+                    res.end(JSON.stringify({ message: "TODO update item(s)", data: rows, update: req.body }))
+                }
+            })
+            .catch(next)
+    }
+}
+
+function get(tablename, accessControl) {
+    return async(req, res, next) => {
+        query(tablename, req.query, req.session.account, accessControl)
+            .then((rows) => res.send(JSON.stringify({ data: rows })))
+            .catch(next)
+    }
+}
+
+async function query(tablename, params, account, accessControl) {
+    if (typeof accessControl !== 'function') throw "No access Control provided. Must provide Access Control function"
+    const { select, filter } = parseQuery(params)
+    select && await verifyColumns(tablename, select)
+
+    return new Promise((resolve, reject) => {
+        pool.connect((err, client, done) => {
+            if (err) { done(); reject(err); return; };
+            const ac = accessControl(account)
+            const qry = `SELECT DISTINCT(${tablename}.id), ${select ? select.map(col => `${tablename}.${col}`).join(',') : `${tablename}.*`} FROM ${tablename} ${ac} ${ac ? (filter.toString(tablename) ? 'AND' : '') : (filter.toString(tablename) ? 'WHERE' : '')} ${filter.toString(tablename) ? `${filter.toString(tablename)}` : ''}`
+            // console.log(query)
+            client.query(qry, [], (err, res) => {
+                done(); if (err) { reject(err); return; };
+                res.rows.forEach((row) => { if(select && !select.includes('id')) { delete row.id }})
+                resolve(res.rows);
+            })
+        })
+    })
+}
+
+function parseQuery({ $select, $filter, $group, $order }) {
+    const select = parseSelect($select)
+    const filter = parseFilter($filter)
+
+    return { select, filter }
+}
+
+const WhiteSpace = `(\\s+)`
+class SimpleFilter {
+    static get Ops() { return `(EQ|NE|LT|LE|GT|GE)` }
+    static get Operands() { return `('.*?(?<!\\\\)'|[0-9]+\\.?[0-9]+|\\w+)` }
+    static get ColumnFormat() { return `[^\\d](\\w+)` }
+    static get OpConversion() {
+        return { "EQ": "=", "NE": "<>", "LT": "<", "LE": "<=", "GT": ">", "GE": ">=" }
+    }
+    lhs; op; rhs;
+    
+    constructor() {}
+
+    verify() {
+        if (!this.full()) { 
+            console.error(this)
+            throw "Malformatted Filter - Simple" 
+        }
+    }
+
+    full() {
+        return this.lhs && this.op && this.rhs
+    }
+
+    isColumn(str) {
+        return new RegExp(`^${SimpleFilter.ColumnFormat}$`).test(str)
+    }
+
+    toString(prefix) {
+        return `${this.isColumn(this.lhs)?`${prefix}.${this.lhs}`:this.lhs} ${SimpleFilter.OpConversion[this.op.toUpperCase()]} ${this.isColumn(this.rhs)?`${prefix}.${this.rhs}`:this.rhs}`
+    }
+
+    static fromFilterString(filter) {
+        const simplefilter = new SimpleFilter();
+        let match = null;
+        
+        while (!simplefilter.full() && !/^$/.test(filter)) {
+            ;({ filter, match } = consume(filter, WhiteSpace));
+            
+            // Operators (EQ, NE, etc.)
+            if (({ filter, match } = consume(filter, SimpleFilter.Ops)) && match) {
+                simplefilter.op = match;
+            }
+
+            // Operands (strings, column names, numbers)
+            else if (({ filter, match } = consume(filter, SimpleFilter.Operands)) && match) {
+                if (!simplefilter.lhs) { simplefilter.lhs = match; }
+                else { simplefilter.rhs = match; }
+            }
+
+            // Other Values should not be present
+            else {
+                throw `Malformatted Filter: ${filter}`;
+            }
+        }
+    
+        simplefilter.verify();
+        return { filter, simplefilter };
+    }
+}
+
+class FilterGroup {
+    static get GroupStart() { return `(\\()` }
+    static get GroupEnd() { return `(\\))` }
+    static get GroupOps() { return `(AND|OR)` }
+    ops = []; operands = [];
+    constructor () {}
+
+    addOp(op) {
+        this.ops.push(op)
+    }
+
+    addOperand(operand) {
+        this.operands.push(operand)
+    }
+
+    verify() {
+        if (this.ops.length !== (this.operands.length-1)) {
+            throw `Malformatted Group Filter: ${JSON.stringify(this)}`
+        }
+    }
+
+    toString(prefix) {
+        if (!this.operands.length) { return '' }
+        const filterstring = this.operands.map((filter, i) => {
+            return `${filter.toString(prefix)}${this.ops.length > 0 && this.ops.length != i ? ` ${this.ops[i]} ` : ''}`
+        }).join('');
+
+        return `(${filterstring})`
+    }
+
+    static fromFilterString(filter) {
+        let group = new FilterGroup();
+        let match = null;
+    
+        while(!/^$/.test(filter)) {
+            // remove leading whitespace
+            ;({ filter, match } = consume(filter, WhiteSpace));
+    
+            // beginning of a group
+            if (({ filter, match } = consume(filter, FilterGroup.GroupStart)) && match) {
+                const sub = FilterGroup.fromFilterString(filter)
+                filter = sub.filter; group.addOperand(sub.group)
+            }
+    
+            // end of a group
+            else if (({ filter, match } = consume(filter, FilterGroup.GroupEnd)) && match) {
+                return { group, filter } 
+            }
+    
+            // group operands
+            else if (({ filter, match } = consume(filter, FilterGroup.GroupOps)) && match) {
+                group.addOp(match);
+            }
+    
+            // simple filter
+            else {
+                let simplefilter = null;
+                ;({ filter, simplefilter } = SimpleFilter.fromFilterString(filter));
+                group.addOperand(simplefilter);
+            }
+        }
+    
+        group.verify()
+        return { group, filter }
+    }
+}
+
+function consume(filter, regexstring) {
+    const regex = new RegExp(`^${regexstring}(.*)$`, 'i');
+    const res = regex.exec(filter);
+
+    filter = res ? (res[2] ? res[2] : (res[2] === '' ? '' : filter)) : filter;
+    return { filter: filter, match: res && res[1] };
+}
+
+function parseFilter(filter) {
+    if (!filter) return new FilterGroup()
+    const { group } = FilterGroup.fromFilterString(filter);
+    return group;
+}
+
+function parseSelect(selectColumns) {
+    if (!selectColumns) return '';
+    return selectColumns.split(/\s*,\s*/).map(column => column.trim()).filter(column => column)
+}
+
+function verifyColumn(tablename, column) {
+    return new Promise(async (resolve, reject) => {
+        pool.connect((err, client, done) => {
+            if (err) throw err
+            client.query('SELECT column_name FROM information_schema.columns WHERE table_name=$1 and column_name=$2', [tablename, column], (err, res) => {
+                done()
+                if (err) {
+                    console.log(err.stack)
+                } else {
+                    if (res.rows.length !== 1) {
+                        reject(`Column '${column}' does not exist on '${tablename}'`)
+                    } else {
+                        resolve(res.rows)
+                    }
+                }
+            })
+        })
+    }) 
+}
+
+function verifyColumns(tablename, columnsArray) {
+    return new Promise(async (resolve, reject) => {
+        let promises = []
+        for (col of columnsArray) {
+            promises.push(verifyColumn(tablename, col))
+        }
+        Promise.all(promises)
+            .then(() => { resolve(true) })
+            .catch((err) => { reject(err) })
+    });
+}
+
+function selectQuery(tablename, req) {
+    return new Promise((resolve) => {
+        pool.connect((err, client, done) => {
+            if (err) { resolve({ error: err }); return; }
+            client.query()
         })
     })
 }
@@ -223,9 +490,11 @@ function getItems(email) {
 }
 
 function getItemList(req, response) {
-    const email = req.params.emailId || req.session.account.email
+    const email = req.params.emailId || req.session.account.email 
     getItems(email)
         .then(async (items) => {
+            response.end(JSON.stringify(items, null, 3)); return;
+
             const user = await getUser(email) || {}
             response.render('pages/itemlist', { 
                 title: (user.name ? user.name : user.email_id) + ' - Items',
@@ -267,6 +536,13 @@ function getGroupMemberList(req, response) {
         })
     })
 }
+
+exports.parseColumns = parseSelect
+exports.verifyColumns = verifyColumns
+exports.parseQuery = parseQuery
+exports.get = get
+exports.post = post
+exports.AccessControl = AccessControl
 
 exports.addUser = addUser
 exports.getUser = getUser

@@ -14,9 +14,16 @@ docker-compose.yml
 # SQL
 data2.sql
 data.sql
+/sql/*.sql
 
 # Other
 models
 
 #webpack js build file
 /public/app.js
+/public/app.js.LICENSE.txt
+
+#test files
+/react-src/Test
+/controllers/test.ts
+/views/pages/index.ejs.back
